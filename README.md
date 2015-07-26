@@ -19,8 +19,8 @@ Currently GUI support is being developed. After that TUI support and openstack c
 Final deliverable will be an "CentOS Openstack remix" ISO (~1.2GB) built using CentOS minimal ISO.
 
 ## Testing Instructions:
-1. Fetch CentOS ISO from: <Under Progress>
-2. At the first install screen press "TAB" and append the following command: inst.updates=
+1. Fetch CentOS ISO from: [Under Progress]
+2. At the first install screen press "TAB" and append the following command: inst.updates=[Under Progress]
 
 ## Contact Info:
 IRC: asad_ (#centos-devel)
