@@ -1,6 +1,5 @@
 __author__ = 'asad'
 
-import pdb
 import os.path
 import urllib2
 import sys
@@ -8,20 +7,21 @@ import tempfile
 import shutil
 from pyanaconda.addons import AddonData
 from pyanaconda.constants import ROOT_PATH
+from pyanaconda import iutil
 from pykickstart.options import KSOptionParser
 from pykickstart.errors import KickstartParseError, formatErrorMsg
-from pyanaconda import iutil
 from blivet import util
 
 
-__all__ = ["Packstackks"]
+__all__ = ["Cloudks"]
 
 ANSWERS_FILE = "/root/packstack-answers.txt"
 GROUP_REQUIRED = ("@Cloud",)
 
 # Mandatory methods (handle_header, handle_line, setup, execute and __str__)
 
-class Packstackks(AddonData):
+class Cloudks(AddonData):
+
     def __init__(self, name):
 
         AddonData.__init__(self, name)
@@ -63,7 +63,6 @@ class Packstackks(AddonData):
             except:
                 raise KickstartParseError('Exception Unable to fetch Answers file')
             self.arguments = "--answers-file = " + options.file
-            print (self.arguments)
         elif options.mode:
             self.arguments = options.mode
             print(self.arguments)
@@ -81,6 +80,7 @@ class Packstackks(AddonData):
         """
 
         pass
+
     def finalize(self):
         """
 
@@ -112,7 +112,7 @@ class Packstackks(AddonData):
         """
         Post install activities, first copy the answer file
         from location given in kickstart. Second copy cirrios
-        image and rabbitmq public key (both needed for offline)
+        image and rabbitmq public key (both needed for offline packstack run)
         """
         # Create Answers file from given URL TODO:Copy the answer file directly
         if self.lines is not None:
@@ -120,7 +120,6 @@ class Packstackks(AddonData):
             with open(answer_file, "w") as fobj:
                 fobj.write("%s\n" % self.lines)
 
-        # Not a good idea disabling NetworkManager service here
         # Copying cirrios image & rabbitmq public key to host system from media
         tmpdirectory = tempfile.mkdtemp()
         util.mount(device="/dev/disk/by-label/CentOS\\x207\\x20x86_64",mountpoint=tmpdirectory,fstype="auto")
