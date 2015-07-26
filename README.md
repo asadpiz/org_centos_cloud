@@ -20,11 +20,15 @@ Final deliverable will be an "CentOS Openstack remix" ISO (~1.2GB) built using C
 
 ## Testing Instructions:
 There are three ways to test the addon:
-Method 1. Fetch CentOS ISO from [Under Progress], which contains the addon and simply run the installer.
-Method 2. Use "updates.img" file and At the first install screen of CentOS press "TAB" and append the following command: `inst.updates=[Under Progress]`
-Note: The ISO you choose must have all openstack packages, Fetch the CentOS ISO here.
-Method 3. Generate updates.img from source: Clone the source from the repository and place it in a new directory tmpo/usr/share/anaconda/addons/. Then from the tmpo directory run the following command:
+**Method 1.** Fetch CentOS ISO from [Under Progress], which contains the addon and simply run the installer.
+
+**Method 2.** Use "updates.img" file and At the first install screen of CentOS press "TAB" and append the following command: `inst.updates=[Under Progress]`
+
+*Note: The ISO you choose must have all openstack packages, Fetch the CentOS ISO here.*
+
+**Method 3**. Generate updates.img from source: Clone the source from the repository and place it in a new directory tmpo/usr/share/anaconda/addons/. Then from the tmpo directory run the following command:
 `find . | cpio -c -o | gzip -9 > updates.img`
+
 Then use Method 2.
  
 ## Contact Info:
