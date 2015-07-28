@@ -27,48 +27,57 @@ class Cloudks(AddonData):
         AddonData.__init__(self, name)
         self.lines = ""
         self.arguments = ""
+        self.state = False
 
     # Creating %addon section in post-install anaconda.cfg file
     def __str__(self):
-
         addon_str = "%%addon %s " % self.name
-        if self.arguments:
-            addon_str += str(self.arguments)
-        addon_str += "\n%s\n%%end\n" % self.lines
+        if self.state:
+            addon_str += ("--enable" + str (self.arguments) + "\n%%end\n")
+        else:
+            addon_str += ("--disable\n%%end\n" )
+        #addon_str += "\n%s\n%%end\n" % self.lines
         return addon_str
 
     def handle_header(self, lineno, args):
 
         op = KSOptionParser()
-
-        op.add_option("--allinone", action="store_true", default=True,
+        op.add_option("--enable", "-e", action="store_true", default=False,
+                      dest="state", help="Enable Cloud Support")
+        op.add_option("--disable", "-d", action="store_false",
+                      dest="state", help="(Default) Disable Cloud Support")
+        op.add_option("--allinone", "-a", action="store_true", default=True,
                       dest="mode", help="Specify the mode of Packstack Installation")
-        op.add_option("--answer-file", action="store",type= "string",
+        op.add_option("--answer-file","-f", action="store",type= "string",
                       dest="file", help="Specify URL of answers file")
         (options, extra) = op.parse_args(args=args, lineno=lineno)
 
         # Error Handling
+        if options.state:
+            self.state = options.state
+            if options.file and options.mode:
+                msg = "options --allinone and --answer-file are mutually exclusive"
+                raise KickstartParseError(msg)
+            elif options.file:
+                try:
+                    response = urllib2.urlopen(options.file)
+                    for line in response:
+                        self.lines += line
+                except urllib2.HTTPError, e:
+                    msg = "Kickstart Error:: HTTPError: " + str(e.code)
+                    raise KickstartParseError(msg)
+                except urllib2.URLError, e:
+                    msg = "Kickstart Error: HTTPError: " + str(e.reason)
+                    raise KickstartParseError(msg)
+                except:
+                    raise KickstartParseError('Exception Unable to fetch Answers file')
+                self.arguments = "--answers-file = " + options.file
+            elif options.mode:
+                self.arguments = options.mode
+            else:
+                msg = "Kickstart Error: Exception no mode specified"
+                raise KickstartParseError, formatErrorMsg(lineno, msg=msg)
 
-        if options.file:
-            try:
-                response = urllib2.urlopen(options.file)
-                for line in response:
-                    self.lines += line
-            except urllib2.HTTPError, e:
-                msg = "HTTPError: " + str(e.code)
-                raise KickstartParseError(msg)
-            except urllib2.URLError, e:
-                msg = "HTTPError: " + str(e.reason)
-                raise KickstartParseError(msg)
-            except:
-                raise KickstartParseError('Exception Unable to fetch Answers file')
-            self.arguments = "--answers-file = " + options.file
-        elif options.mode:
-            self.arguments = options.mode
-            print(self.arguments)
-        else:
-            msg = "Exception no mode specified"
-            raise KickstartParseError, formatErrorMsg(self.lineno, msg=msg)
 
     def handle_line(self, line):
         """
@@ -100,11 +109,12 @@ class Cloudks(AddonData):
         During installation just install the package group
         Cloud..
         """
-        groups = list(GROUP_REQUIRED)
-        for item in groups:
-            if item not in ksdata.packages.packageList:
-                ksdata.packages.packageList.append(item)
-                # TODO: Copy CIRIOS image & rabbitmq certificate file at this stage.
+        if self.state:
+            groups = list(GROUP_REQUIRED)
+            for item in groups:
+                if item not in ksdata.packages.packageList:
+                    ksdata.packages.packageList.append(item)
+                    # TODO: Copy CIRIOS image & rabbitmq certificate file at this stage.
 
         #pass
 
@@ -115,17 +125,18 @@ class Cloudks(AddonData):
         image and rabbitmq public key (both needed for offline packstack run)
         """
         # Create Answers file from given URL TODO:Copy the answer file directly
-        if self.lines is not None:
-            answer_file = os.path.normpath(ROOT_PATH + ANSWERS_FILE)
-            with open(answer_file, "w") as fobj:
-                fobj.write("%s\n" % self.lines)
+        if self.state:
+            if self.lines is not None:
+                answer_file = os.path.normpath(ROOT_PATH + ANSWERS_FILE)
+                with open(answer_file, "w") as fobj:
+                    fobj.write("%s\n" % self.lines)
 
-        # Copying cirrios image & rabbitmq public key to host system from media
-        tmpdirectory = tempfile.mkdtemp()
-        util.mount(device="/dev/disk/by-label/CentOS\\x207\\x20x86_64",mountpoint=tmpdirectory,fstype="auto")
-        shutil.copy(tmpdirectory + "/Packages/RDO/cirros-0.3.1-x86_64-disk.img",
-                    os.path.normcase(ROOT_PATH + "/root/cirros-0.3.1-x86_64-disk.img"))
-        shutil.copy(tmpdirectory + "/Packages/RDO/rabbitmq-signing-key-public.asc",
-                    os.path.normcase(ROOT_PATH + "/root/rabbitmq-signing-key-public.asc"))
-        util.umount(tmpdirectory)
-        shutil.rmtree(tmpdirectory)
+            # Copying cirrios image & rabbitmq public key to host system from media
+            tmpdirectory = tempfile.mkdtemp()
+            util.mount(device="/dev/disk/by-label/CentOS\\x207\\x20x86_64",mountpoint=tmpdirectory,fstype="auto")
+            shutil.copy(tmpdirectory + "/Packages/RDO/cirros-0.3.1-x86_64-disk.img",
+                        os.path.normcase(ROOT_PATH + "/root/cirros-0.3.1-x86_64-disk.img"))
+            shutil.copy(tmpdirectory + "/Packages/RDO/rabbitmq-signing-key-public.asc",
+                        os.path.normcase(ROOT_PATH + "/root/rabbitmq-signing-key-public.asc"))
+            util.umount(tmpdirectory)
+            shutil.rmtree(tmpdirectory)

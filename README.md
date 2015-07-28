@@ -20,6 +20,7 @@ Final deliverable will be an "CentOS Openstack remix" ISO (~1.2GB) built using C
 
 ## Testing Instructions:
 There are three ways to test the addon:
+
 **Method 1.** Fetch CentOS ISO from [Under Progress], which contains the addon and simply run the installer.
 
 **Method 2.** Use "updates.img" file and At the first install screen of CentOS press "TAB" and append the following command: `inst.updates=[Under Progress]`
