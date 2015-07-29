@@ -167,6 +167,8 @@ class CloudSpoke(NormalSpoke):
     #     else:
     #         state = "off"
 
+
+
 class PackStackSpoke(FirstbootOnlySpokeMixIn, NormalSpoke):
     """
 ​    Class for the CloudSpke. This spoke will only be shown during the setup
@@ -178,6 +180,7 @@ class PackStackSpoke(FirstbootOnlySpokeMixIn, NormalSpoke):
     builderObjects = ["CloudSpokeWindow", "button1", "progressbar1"]
     icon = "weather-overcast-symbolic"
     title = N_("_CLOUD SUPPORT")
+    category = SoftwareCategory
 
     ### methods defined by API ###
     def __init__(self, data, storage, payload, instclass):
