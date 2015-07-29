@@ -9,7 +9,7 @@ from pyanaconda.addons import AddonData
 from pyanaconda.constants import ROOT_PATH
 from pyanaconda import iutil
 from pykickstart.options import KSOptionParser
-from pykickstart.errors import KickstartParseError, formatErrorMsg
+from pykickstart.errors import KickstartParseError, KickstartValueError,formatErrorMsg
 from blivet import util
 
 
@@ -27,12 +27,12 @@ class Cloudks(AddonData):
         AddonData.__init__(self, name)
         self.lines = ""
         self.arguments = ""
-        self.state = False
+        self.state = "none"
 
     # Creating %addon section in post-install anaconda.cfg file
     def __str__(self):
         addon_str = "%%addon %s " % self.name
-        if self.state:
+        if self.state == "True":
             addon_str += ("--enable" + str (self.arguments) + "\n%%end\n")
         else:
             addon_str += ("--disable\n%%end\n" )
@@ -53,8 +53,10 @@ class Cloudks(AddonData):
         (options, extra) = op.parse_args(args=args, lineno=lineno)
 
         # Error Handling
-        if options.state:
-            self.state = options.state
+        if str(options.state) == "none":
+            self.arguments = "none"
+        elif str(options.state) == "True":
+            self.state = str(options.state)
             if options.file and options.mode:
                 msg = "options --allinone and --answer-file are mutually exclusive"
                 raise KickstartParseError(msg)
@@ -65,18 +67,23 @@ class Cloudks(AddonData):
                         self.lines += line
                 except urllib2.HTTPError, e:
                     msg = "Kickstart Error:: HTTPError: " + str(e.code)
-                    raise KickstartParseError(msg)
+                    raise KickstartParseError, formatErrorMsg(lineno, msg=msg)
                 except urllib2.URLError, e:
                     msg = "Kickstart Error: HTTPError: " + str(e.reason)
-                    raise KickstartParseError(msg)
+                    raise KickstartParseError, formatErrorMsg(lineno, msg=msg)
                 except:
-                    raise KickstartParseError('Exception Unable to fetch Answers file')
+                    msg = 'Exception Unable to fetch Answers file'
+                    raise KickstartParseError, formatErrorMsg(lineno, msg=msg)
                 self.arguments = "--answers-file = " + options.file
             elif options.mode:
                 self.arguments = options.mode
+            elif extra:
+                msg = "Too many Arguments Specified"
+                raise KickstartValueError, formatErrorMsg(lineno, msg=msg)
             else:
-                msg = "Kickstart Error: Exception no mode specified"
-                raise KickstartParseError, formatErrorMsg(lineno, msg=msg)
+                self.arguments = "none"
+        else:
+            self.state = str(options.state)
 
 
     def handle_line(self, line):
@@ -109,7 +116,8 @@ class Cloudks(AddonData):
         During installation just install the package group
         Cloud..
         """
-        if self.state:
+        print ("I'm in ks setup")
+        if self.state == "True":
             groups = list(GROUP_REQUIRED)
             for item in groups:
                 if item not in ksdata.packages.packageList:
@@ -125,7 +133,7 @@ class Cloudks(AddonData):
         image and rabbitmq public key (both needed for offline packstack run)
         """
         # Create Answers file from given URL TODO:Copy the answer file directly
-        if self.state:
+        if self.state == "True":
             if self.lines is not None:
                 answer_file = os.path.normpath(ROOT_PATH + ANSWERS_FILE)
                 with open(answer_file, "w") as fobj:
@@ -140,3 +148,9 @@ class Cloudks(AddonData):
                         os.path.normcase(ROOT_PATH + "/root/rabbitmq-signing-key-public.asc"))
             util.umount(tmpdirectory)
             shutil.rmtree(tmpdirectory)
+            # Copy Addon itself to /usr/share/anaconda/addons
+            print(ROOT_PATH)
+            if os.path.exists(ROOT_PATH + "/usr/share/anaconda/addons/org_centos_cloud"):
+                os.mkdir(ROOT_PATH + "/usr/share/anaconda/addons/org_centos_cloud")
+            shutil.copytree("/usr/share/anaconda/addons/org_centos_cloud",
+                            os.path.normcase(ROOT_PATH + "/usr/share/anaconda/addons/org_cent_cloud"))
