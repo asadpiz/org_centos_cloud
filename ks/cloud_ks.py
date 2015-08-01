@@ -9,34 +9,35 @@ from pyanaconda.addons import AddonData
 from pyanaconda.constants import ROOT_PATH
 from pyanaconda import iutil
 from pykickstart.options import KSOptionParser
-from pykickstart.errors import KickstartParseError, KickstartValueError,formatErrorMsg
+from pykickstart.errors import KickstartParseError, KickstartValueError, formatErrorMsg
 from blivet import util
-
 
 __all__ = ["Cloudks"]
 
 ANSWERS_FILE = "/root/packstack-answers.txt"
 GROUP_REQUIRED = ("@Cloud",)
 
+
 # Mandatory methods (handle_header, handle_line, setup, execute and __str__)
 
 class Cloudks(AddonData):
-
     def __init__(self, name):
 
         AddonData.__init__(self, name)
         self.lines = ""
-        self.arguments = ""
+        self.arguments = "none"
         self.state = "none"
 
     # Creating %addon section in post-install anaconda.cfg file
     def __str__(self):
         addon_str = "%%addon %s " % self.name
         if self.state == "True":
-            addon_str += ("--enable" + str (self.arguments) + "\n%%end\n")
+            if self.arguments == "none":
+                addon_str += ("--enable \n\n%end\n")
+            else:
+                addon_str += ("--enable " + str(self.arguments) + "\n\n%end\n")
         else:
-            addon_str += ("--disable\n%%end\n" )
-        #addon_str += "\n%s\n%%end\n" % self.lines
+            addon_str += ("--disable\n\n%end\n")
         return addon_str
 
     def handle_header(self, lineno, args):
@@ -46,16 +47,14 @@ class Cloudks(AddonData):
                       dest="state", help="Enable Cloud Support")
         op.add_option("--disable", "-d", action="store_false",
                       dest="state", help="(Default) Disable Cloud Support")
-        op.add_option("--allinone", "-a", action="store_true", default=True,
+        op.add_option("--allinone", "-a", action="store_true", default=False,
                       dest="mode", help="Specify the mode of Packstack Installation")
-        op.add_option("--answer-file","-f", action="store",type= "string",
+        op.add_option("--answer-file", "-f", action="store", type="string",
                       dest="file", help="Specify URL of answers file")
         (options, extra) = op.parse_args(args=args, lineno=lineno)
 
         # Error Handling
-        if str(options.state) == "none":
-            self.arguments = "none"
-        elif str(options.state) == "True":
+        if str(options.state) == "True":
             self.state = str(options.state)
             if options.file and options.mode:
                 msg = "options --allinone and --answer-file are mutually exclusive"
@@ -76,15 +75,11 @@ class Cloudks(AddonData):
                     raise KickstartParseError, formatErrorMsg(lineno, msg=msg)
                 self.arguments = "--answers-file = " + options.file
             elif options.mode:
-                self.arguments = options.mode
+                # self.arguments = options.mode
+                self.arguments = "--allinone"
             elif extra:
                 msg = "Too many Arguments Specified"
                 raise KickstartValueError, formatErrorMsg(lineno, msg=msg)
-            else:
-                self.arguments = "none"
-        else:
-            self.state = str(options.state)
-
 
     def handle_line(self, line):
         """
@@ -106,7 +101,7 @@ class Cloudks(AddonData):
         the KickstartValueError exception.
 
         """
-        #TODO: Maybe do further error handling here
+        # TODO: Maybe do further error handling here
         # no actions needed in this addon
         pass
 
@@ -116,15 +111,13 @@ class Cloudks(AddonData):
         During installation just install the package group
         Cloud..
         """
-        print ("I'm in ks setup")
         if self.state == "True":
             groups = list(GROUP_REQUIRED)
             for item in groups:
                 if item not in ksdata.packages.packageList:
                     ksdata.packages.packageList.append(item)
-                    # TODO: Copy CIRIOS image & rabbitmq certificate file at this stage.
-
-        #pass
+        else:
+            pass
 
     def execute(self, storage, ksdata, instclass, users):
         """
@@ -141,7 +134,7 @@ class Cloudks(AddonData):
 
             # Copying cirrios image & rabbitmq public key to host system from media
             tmpdirectory = tempfile.mkdtemp()
-            util.mount(device="/dev/disk/by-label/CentOS\\x207\\x20x86_64",mountpoint=tmpdirectory,fstype="auto")
+            util.mount(device="/dev/disk/by-label/CentOS\\x207\\x20x86_64", mountpoint=tmpdirectory, fstype="auto")
             shutil.copy(tmpdirectory + "/Packages/RDO/cirros-0.3.1-x86_64-disk.img",
                         os.path.normcase(ROOT_PATH + "/root/cirros-0.3.1-x86_64-disk.img"))
             shutil.copy(tmpdirectory + "/Packages/RDO/rabbitmq-signing-key-public.asc",
@@ -149,8 +142,14 @@ class Cloudks(AddonData):
             util.umount(tmpdirectory)
             shutil.rmtree(tmpdirectory)
             # Copy Addon itself to /usr/share/anaconda/addons
-            print(ROOT_PATH)
             if os.path.exists(ROOT_PATH + "/usr/share/anaconda/addons/org_centos_cloud"):
                 os.mkdir(ROOT_PATH + "/usr/share/anaconda/addons/org_centos_cloud")
             shutil.copytree("/usr/share/anaconda/addons/org_centos_cloud",
-                            os.path.normcase(ROOT_PATH + "/usr/share/anaconda/addons/org_cent_cloud"))
+                            os.path.normcase(ROOT_PATH + "/usr/share/anaconda/addons/org_centos_cloud"))
+            # Enabling initial-setup-text service, TODO: Add checks for initial-setup-graphical support
+            rc = iutil.execInSysroot("ln", ["-s", "usr/lib/systemd/system/initial-setup-text.service",
+                                            "etc/systemd/system/multi-user.target.wants/initial-setup-text.service"])
+            if rc:
+                print ("Initializing initial-setup-text service failed")
+        else:
+            pass

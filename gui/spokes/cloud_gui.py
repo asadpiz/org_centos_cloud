@@ -53,10 +53,19 @@ class CloudSpoke(NormalSpoke):
         :see: pyanaconda.ui.common.UIObject.initialize
 
         """
-        print("I'm in initialize\n")
-        self.complete = False
+
         NormalSpoke.initialize(self)
         self.switch = self.builder.get_object("switch2")
+        if self.data.addons.org_centos_cloud.state == "True":
+            # Addon is enabled
+            self.switch.set_active(True)
+            self.complete = True
+        elif self.data.addons.org_centos_cloud.state == "False":
+            #print("--disable")
+            self.switch.set_active(False)
+            self.complete = True
+        else:
+            self.complete = False
 
     def refresh(self):
         """
@@ -67,7 +76,6 @@ class CloudSpoke(NormalSpoke):
         :see: pyanaconda.ui.common.UIObject.refresh
 
         """
-        print ("in referesh")
         if self.data.addons.org_centos_cloud.state == "True":
             # Addon is enabled
             self.switch.set_active(True)
@@ -117,12 +125,6 @@ class CloudSpoke(NormalSpoke):
         :rtype: bool
 
         """
-        print ("I'm in completed: " + str(self.data.addons.org_centos_cloud.state))
-        if self.data.addons.org_centos_cloud.state == "False": # User has disabled
-            self.complete = True # do nothing, let user decide
-        elif self.data.addons.org_centos_cloud.state == "True":
-            # Addon is enabled
-            self.complete = True
 
         return bool(self.complete)
 
@@ -215,7 +217,17 @@ class PackStackSpoke(FirstbootOnlySpokeMixIn, NormalSpoke):
         NormalSpoke.initialize(self)
         self.button = self.builder.get_object("button1")
         self.progressbar = self.builder.get_object("progressbar1")
-
+        if self.data.addons.org_centos_cloud.state == "False":
+            # Addon is disabled
+            self.complete = True
+        elif self.data.addons.org_centos_cloud.state == "True":
+            #print("--disable")
+            if self.data.addons.org_centos_cloud.arguments == "--allinone":
+                pass # call run packstack --allinone or activate click button
+            elif self.data.addons.org_centos_cloud.arguments: # --answer-file
+                pass # call packstack --answer-file ()
+            else:
+                self.complete = False
     def refresh(self):
         """
         The refresh method that is called every time the spoke is displayed.
@@ -233,6 +245,7 @@ class PackStackSpoke(FirstbootOnlySpokeMixIn, NormalSpoke):
         update the contents of self.data with values set in the GUI elements.
 
         """
+        # TODO: add --answer-file
         if self.success:
             self.data.addons.org_centos_cloud.arguments = "--allinone"
         else:
@@ -272,14 +285,8 @@ class PackStackSpoke(FirstbootOnlySpokeMixIn, NormalSpoke):
         :rtype: bool
 
         """
-        print ("I'm in completed: " + str(self.data.addons.org_centos_cloud.state))
-        if (
-                self.data.addons.org_centos_cloud.state == "False" or self.data.addons.org_centos_cloud.state == "none"):  # User has disabled
-            self.complete = True # do nothing, let user decide
-        elif self.data.addons.org_centos_cloud.state == "True":
-            # Call PackStack return value defines complete true or not.
-            if self.success:
-                self.complete = True
+        if self.success:
+            self.complete = True
 
         return bool(self.complete)
 
