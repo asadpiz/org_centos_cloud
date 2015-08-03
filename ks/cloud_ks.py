@@ -1,10 +1,13 @@
 __author__ = 'asad'
 
 import os.path
+import os, sys
+import subprocess
 import urllib2
 import sys
 import tempfile
 import shutil
+import fileinput
 from pyanaconda.addons import AddonData
 from pyanaconda.constants import ROOT_PATH
 from pyanaconda import iutil
@@ -27,6 +30,7 @@ class Cloudks(AddonData):
         self.lines = ""
         self.arguments = "none"
         self.state = "none"
+        self.env = "anaconda"
 
     # Creating %addon section in post-install anaconda.cfg file
     def __str__(self):
@@ -126,30 +130,61 @@ class Cloudks(AddonData):
         image and rabbitmq public key (both needed for offline packstack run)
         """
         # Create Answers file from given URL TODO:Copy the answer file directly
-        if self.state == "True":
+        if self.state == "True" and self.env == "anaconda":
             if self.lines is not None:
                 answer_file = os.path.normpath(ROOT_PATH + ANSWERS_FILE)
                 with open(answer_file, "w") as fobj:
                     fobj.write("%s\n" % self.lines)
 
-            # Copying cirrios image & rabbitmq public key to host system from media
+            # Copying cirrios image & rabbitmq public key to Host system from media
             tmpdirectory = tempfile.mkdtemp()
+            os.mkdir(ROOT_PATH + "/var/www/html/0.3.1")
             util.mount(device="/dev/disk/by-label/CentOS\\x207\\x20x86_64", mountpoint=tmpdirectory, fstype="auto")
             shutil.copy(tmpdirectory + "/Packages/RDO/cirros-0.3.1-x86_64-disk.img",
-                        os.path.normcase(ROOT_PATH + "/root/cirros-0.3.1-x86_64-disk.img"))
+                        os.path.normcase(ROOT_PATH + "/var/www/html/0.3.1/cirros-0.3.1-x86_64-disk.img"))
             shutil.copy(tmpdirectory + "/Packages/RDO/rabbitmq-signing-key-public.asc",
-                        os.path.normcase(ROOT_PATH + "/root/rabbitmq-signing-key-public.asc"))
+                        os.path.normcase(ROOT_PATH + "/var/www/html/rabbitmq-signing-key-public.asc"))
             util.umount(tmpdirectory)
             shutil.rmtree(tmpdirectory)
+            with open(ROOT_PATH + '/etc/hosts', 'a') as file:
+                file.write('127.0.0.1 www.rabbitmq.com download.cirros-cloud.net\n')
             # Copy Addon itself to /usr/share/anaconda/addons
+            #TODO: Once Packaged remove this step
             if os.path.exists(ROOT_PATH + "/usr/share/anaconda/addons/org_centos_cloud"):
                 os.mkdir(ROOT_PATH + "/usr/share/anaconda/addons/org_centos_cloud")
             shutil.copytree("/usr/share/anaconda/addons/org_centos_cloud",
                             os.path.normcase(ROOT_PATH + "/usr/share/anaconda/addons/org_centos_cloud"))
-            # Enabling initial-setup-text service, TODO: Add checks for initial-setup-graphical support
+
+            # Enabling initial-setup-text service,
+            # TODO: Check if Graphical OR Text Service to Enable
+            #initial-setup-text.service: Adding $HOME=/root ENV Variable & Enabling
+            for line in fileinput.input(ROOT_PATH + '/usr/lib/systemd/system/initial-setup-text.service', inplace=1):
+                if line.startswith('Type'):
+                    print 'Environment=HOME=/root'
+                print line,
             rc = iutil.execInSysroot("ln", ["-s", "usr/lib/systemd/system/initial-setup-text.service",
                                             "etc/systemd/system/multi-user.target.wants/initial-setup-text.service"])
             if rc:
-                print ("Initializing initial-setup-text service failed")
+                print ("Initializing initial-setup-text service failed\n")
+            # NetworkManager: Disable
+            rc = iutil.execInSysroot("rm", ["-rf", "etc/systemd/system/multi-user.target.wants/NetworkManager.service",
+                                            "etc/systemd/system/dbus-org.freedesktop.NetworkManager.service",
+                                            "etc/systemd/system/dbus-org.freedesktop.nm-dispatcher.service"])
+            if rc:
+                print ("Disabling Network Failed\n")
+
+        elif self.env == "firstboot":
+            rc = iutil._run_systemctl("enable", "network")
+            if rc:
+                print ("Network start failed")
+            ret = self.run_packstack()
         else:
             pass
+
+    def run_packstack(self):
+        # Run & Display PackStack Here, do cleanup
+        process = subprocess.Popen(["packstack", "--allinone"], stdout=subprocess.PIPE)
+        for line in iter(process.stdout.readline, ''):
+            sys.stdout.write(line)
+        return True
+
