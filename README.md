@@ -1,14 +1,28 @@
-# OpenstackAnaconda: OpenStack addon for Anaconda Installer
+# OpenStackAnaconda: OpenStack addon for Anaconda Installer
+
+*This is an addon that enables installation/setup of OpenStack during Linux installation.*
+
+[*Background & Motivation*](http://seven.centos.org/2015/07/cloud-in-a-box-centos-openstack-remix/)
+
+** The remixed CentOS 7 ISO can be obtained from: [TBA]**
+
+## Introduction:
 
 To ease openstack deployment concerns, this addon aims to provide a robust, pre-configured (yet customizable) and easily installed openstack setup. The result will be a CentOS (Remixed) ISO
 with an option to setup openstack during installation. 
 
 ## Implementation:
 
-The development involves integrating RDO (Red Hat community's openstack package repository) and Packstack (openstack deployment tool) with Anaconda. The resulting remix will:
+This addon integrates RDO (Red Hat community's openstack package repository) and Packstack (openstack deployment tool) with Anaconda:
 
-1. Install RDO (openstack) packages during setup.
-2. Use packstack to configure & deploy openstack (in post-install phase).
+1. During Setup: [RDO](https://www.rdoproject.org/Main_Page) (openstack) packages are installed.
+2. Firstboot: OpenStack is configured & deployed using [packstack](https://wiki.openstack.org/wiki/Packstack).
+
+System Requirements:
+
+CentOS 7 (anaconda 19.31.123)
+[Cloud Repository- Link TBA]- Meanwhile [Package List](../blob/master/PackageList.md)
+
 
 ## Current Status:
 
