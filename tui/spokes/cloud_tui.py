@@ -10,7 +10,7 @@ from pykickstart.constants import FIRSTBOOT_RECONFIG
 # export only the HelloWorldSpoke and HelloWorldEditSpoke classes
 __all__ = ["CloudSpoke", "PackStackSpoke"]
 
-
+#TODO: Maybe use EditTUISpoke for a more Uniform Interface
 class CloudSpoke(NormalTUISpoke):
     """
     Class for the Hello world TUI spoke that is a subclass of NormalTUISpoke. It
@@ -54,7 +54,6 @@ class CloudSpoke(NormalTUISpoke):
         """
 
         NormalTUISpoke.__init__(self, app, data, storage, payload, instclass)
-        # If KickStart provided apply values to spoke
 
     def initialize(self):
         """
@@ -65,12 +64,11 @@ class CloudSpoke(NormalTUISpoke):
         :see: pyanaconda.ui.common.UIObject.initialize
 
         """
+        # If KickStart provided apply values to spoke
         NormalTUISpoke.initialize(self)
         if self.data.addons.org_centos_cloud.state == "True":
             # Addon is enabled
             self.state = True
-        elif self.data.addons.org_centos_cloud.state == "False":
-            self.state = False
         else:
             self.state = False
         self.data.addons.org_centos_cloud.state = str(self.state)
@@ -90,15 +88,7 @@ class CloudSpoke(NormalTUISpoke):
         :rtype: bool
 
         """
-
-        # if self.data.addons.org_centos_cloud.state == "True":
-        #     # Addon is enabled
-        #     self.state = True
-        # elif self.data.addons.org_centos_cloud.state == "False":
-        #     # print("--disable")
-        #     self.state = False
-
-
+        # It should always prompt
         return (True)
 
     def apply(self):
@@ -126,11 +116,12 @@ class CloudSpoke(NormalTUISpoke):
         """
         The completed property that tells whether all mandatory items on the
         spoke are set, or not. The spoke will be marked on the hub as completed
-        or uncompleted acording to the returned value.
+        or uncompleted accSording to the returned value.
 
         :rtype: bool
 
         """
+        # Default value is provided in INIT, so it's always complete
         return bool(True)
 
     @property
@@ -146,9 +137,9 @@ class CloudSpoke(NormalTUISpoke):
         """
 
         if self.state:
-            return _("Cloud Support Enabled\n")
+            return _("Cloud Support: Enabled\n")
         else:
-            return _("Cloud Support Disabled\n")
+            return _("Cloud Support: Disabled\n")
 
     def input(self, args, key):
         """
@@ -173,8 +164,6 @@ class CloudSpoke(NormalTUISpoke):
 
         # no other actions scheduled, apply changes
         self.apply()
-        self.complete = True
-
         # close the current screen (remove it from the stack)
         self.close()
         return True
@@ -192,16 +181,11 @@ class CloudSpoke(NormalTUISpoke):
 
         """
 
-        return _("Do You Want to Enable Cloud Support [y|n]\n: ")
+        return _("Do You Want to Enable Cloud Support? [y|n]\n: ")
 
 class PackStackSpoke(FirstbootOnlySpokeMixIn, NormalTUISpoke):
 
-    # title of the spoke
     title = N_("Cloud Support")
-
-    # categories in text mode are simple strings that are not shown anywhere,
-    # every hub just has a list of categories it should display spokes from
-    # let's just use one of the standard categories defined for the Summary hub
     category = "localization"
 
     ### methods defined by API ###
@@ -228,8 +212,6 @@ class PackStackSpoke(FirstbootOnlySpokeMixIn, NormalTUISpoke):
         """
 
         NormalTUISpoke.__init__(self, app, data, storage, payload, instclass)
-        # FirstbootOnlySpokeMixIn.__init__(self)
-
 
     def initialize(self):
         """
@@ -241,30 +223,29 @@ class PackStackSpoke(FirstbootOnlySpokeMixIn, NormalTUISpoke):
 
         """
         NormalTUISpoke.initialize(self)
+
         # If KickStart provided apply values to spoke
         self.enabled = True
         self.success = False
+        self.complete = False
+        self.msg = ""
+        self.data.addons.org_centos_cloud.env = "firstboot"
         if self.data.addons.org_centos_cloud.state == "False":
             #Addon is disabled
-            self.msg = "Addon is disabled"
-            print (self.msg)
             self.enabled = False
             self.complete = True
+            self.msg = "Cloud Support is Disabled"
         elif self.data.addons.org_centos_cloud.state == "True":
             # Addon is enabled
             # Case mode is also specified in KS
             if self.data.addons.org_centos_cloud.arguments == "--allinone":
-                #TODO: maybe it's better defined in initialize.
                 # Just run packstack and return success & complete True or False
-                print("--allinone provided\n")
                 self.complete = True
                 self.success = True
-                self.msg = "Successfully setup OpenStack"
+                self.msg = "PackStack Mode: --alinone"
             elif self.data.addons.org_centos_cloud.arguments == "none":
                 #Make the spoke Incomplete, prompt for Input
-                self.msg = "Please Confirm if you want to setup OpenStack"
-                self.complete = False
-                self.success = True
+                self.msg = "OpenStack Setup: Enabled\n"
 
     def refresh(self, args=None):
         """
@@ -281,11 +262,9 @@ class PackStackSpoke(FirstbootOnlySpokeMixIn, NormalTUISpoke):
         :rtype: bool
 
         """
-        print ("in referesh")
         if not self.enabled:
             return  False
         else:
-            #print("--disable")
             return True
 
     def apply(self):
@@ -297,7 +276,7 @@ class PackStackSpoke(FirstbootOnlySpokeMixIn, NormalTUISpoke):
         if self.success:
             self.data.addons.org_centos_cloud.arguments = "--allinone"
         else:
-            self.data.addons.org_centos_cloud.arguments = "--disable"
+            self.data.addons.org_centos_cloud.arguments = "none"
 
     def execute(self):
         """
@@ -398,17 +377,18 @@ class PackStackSpoke(FirstbootOnlySpokeMixIn, NormalTUISpoke):
 
         if str (key) == "y" or str (key) == "Y" or str (key) == "yes":
             self.complete = True
+            self.success = True
+
+        elif str (key) == "N" or str (key) == "N" or str (key) == "no":
+            self.complete = True
+            self.msg = "OpenStack Setup: Disabled"
         else:
             self.complete = False
 
-        # no other actions scheduled, apply changes
-        self.run_packstack(key)
+
+
         self.apply()
 
         # close the current screen (remove it from the stack)
         self.close()
         return True
-
-    def run_packstack(self,key):
-
-        print("IN RUN PACKSTACK")

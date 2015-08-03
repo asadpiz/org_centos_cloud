@@ -8,6 +8,7 @@ import sys
 import tempfile
 import shutil
 import fileinput
+from distutils.dir_util import copy_tree
 from pyanaconda.addons import AddonData
 from pyanaconda.constants import ROOT_PATH
 from pyanaconda import iutil
@@ -136,18 +137,22 @@ class Cloudks(AddonData):
                 with open(answer_file, "w") as fobj:
                     fobj.write("%s\n" % self.lines)
 
-            # Copying cirrios image & rabbitmq public key to Host system from media
+            # Copying repodata, cirrios image & rabbitmq public key to Host system from media
             tmpdirectory = tempfile.mkdtemp()
-            os.mkdir(ROOT_PATH + "/var/www/html/0.3.1")
+            # os.mkdir(ROOT_PATH + "/var/www/html/0.3.1")
             util.mount(device="/dev/disk/by-label/CentOS\\x207\\x20x86_64", mountpoint=tmpdirectory, fstype="auto")
-            shutil.copy(tmpdirectory + "/Packages/RDO/cirros-0.3.1-x86_64-disk.img",
-                        os.path.normcase(ROOT_PATH + "/var/www/html/0.3.1/cirros-0.3.1-x86_64-disk.img"))
-            shutil.copy(tmpdirectory + "/Packages/RDO/rabbitmq-signing-key-public.asc",
-                        os.path.normcase(ROOT_PATH + "/var/www/html/rabbitmq-signing-key-public.asc"))
+            copy_tree(tmpdirectory + "/Packages/RDO", os.path.normcase(ROOT_PATH + "/var/www/html/"))
+            shutil.copy(os.path.normcase(ROOT_PATH + "/var/www/html/epel.repo"),
+                        os.path.normcase(ROOT_PATH + "/etc/yum.repos.d/epel.repo"))
+            # shutil.copy(tmpdirectory + "/Packages/RDO/cirros-0.3.1-x86_64-disk.img",
+            #             os.path.normcase(ROOT_PATH + "/var/www/html/0.3.1/cirros-0.3.1-x86_64-disk.img"))
+            # shutil.copy(tmpdirectory + "/Packages/RDO/rabbitmq-signing-key-public.asc",
+            #             os.path.normcase(ROOT_PATH + "/var/www/html/rabbitmq-signing-key-public.asc"))
+
             util.umount(tmpdirectory)
             shutil.rmtree(tmpdirectory)
             with open(ROOT_PATH + '/etc/hosts', 'a') as file:
-                file.write('127.0.0.1 www.rabbitmq.com download.cirros-cloud.net\n')
+                file.write('127.0.0.1 www.rabbitmq.com\n')
             # Copy Addon itself to /usr/share/anaconda/addons
             #TODO: Once Packaged remove this step
             if os.path.exists(ROOT_PATH + "/usr/share/anaconda/addons/org_centos_cloud"):
@@ -173,18 +178,49 @@ class Cloudks(AddonData):
             if rc:
                 print ("Disabling Network Failed\n")
 
-        elif self.env == "firstboot":
+        elif (self.env == "firstboot") and (self.arguments == "--allinone"):
+
             rc = iutil._run_systemctl("enable", "network")
             if rc:
                 print ("Network start failed")
             ret = self.run_packstack()
+            if ret:
+                input("OpenStack Successfully Setup! Press Any Key To Continue...")
         else:
             pass
 
     def run_packstack(self):
         # Run & Display PackStack Here, do cleanup
-        process = subprocess.Popen(["packstack", "--allinone"], stdout=subprocess.PIPE)
+        # Disable All other REPOS
+        count = 0
+        for line in fileinput.input(ROOT_PATH + "/etc/yum.repos.d/CentOS-Base.repo", inplace=True):
+            if line.startswith('gpgcheck'):
+                if (count < 3):
+                    count += 1
+                    print 'enabled=0'
+            print line,
+        fileinput.close()
+        process = subprocess.Popen(["packstack", "--allinone", "--use-epel=y",
+                                    "--provision-image-url=/var/www/html/cirros-0.3.1-x86_64-disk.img"],
+                                   stdout=subprocess.PIPE)
         for line in iter(process.stdout.readline, ''):
             sys.stdout.write(line)
+        process = subprocess.Popen(["openstack-status"], stdout=subprocess.PIPE)
+        for line in iter(process.stdout.readline, ''):
+            sys.stdout.write(line)
+        # TODO: PackStack Error Handling
+        # CleanUP
+        # Enable Repositories
+        for line in fileinput.input(ROOT_PATH + "/etc/yum.repos.d/CentOS-Base.repo", inplace=True):
+            if line.startswith("enabled"):
+                if count > 0:
+                    count -= 1
+                    print(line.replace("enabled=0", "enabled=1").rstrip("\n"))
+                else:
+                    print line,
+            else:
+                print line,
+        fileinput.close()
+        # TODO Cleanup /var/www/html
         return True
 
