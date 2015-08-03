@@ -16,10 +16,11 @@ This addon integrates RDO (Red Hat community's openstack package repository) and
 1. During Setup: [RDO](https://www.rdoproject.org/Main_Page) (openstack) packages are installed.
 2. Firstboot: OpenStack is configured & deployed using [packstack](https://wiki.openstack.org/wiki/Packstack).
 
-System Requirements:
+## System Requirements:
 
-CentOS 7 (anaconda 19.31.123)
-[Cloud Repository- Link TBA]- Meanwhile [Package List](../master/PackageList.md)
+* CentOS 7 (anaconda 19.31.123)
+
+* Packages [Cloud Repository Link TBA]- Meanwhile [Package List](../master/PackageList.md)
 
 
 ## Current Status:
