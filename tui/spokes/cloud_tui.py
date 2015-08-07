@@ -382,6 +382,7 @@ class PackStackSpoke(FirstbootOnlySpokeMixIn, NormalTUISpoke):
         elif str (key) == "N" or str (key) == "N" or str (key) == "no":
             self.complete = True
             self.msg = "OpenStack Setup: Disabled"
+            self.success = False
         else:
             self.complete = False
 

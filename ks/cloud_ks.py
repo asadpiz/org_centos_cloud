@@ -28,10 +28,12 @@ class Cloudks(AddonData):
     def __init__(self, name):
 
         AddonData.__init__(self, name)
+        #TODO: add a dictionary instead of these variables
         self.lines = ""
         self.arguments = "none"
         self.state = "none"
-        self.env = "anaconda"
+        self.env = "anaconda" # Other possible value: firstboot
+#       self.installer = "ks" # Other possible values: gui,tui
 
     # Creating %addon section in post-install anaconda.cfg file
     def __str__(self):
@@ -116,6 +118,7 @@ class Cloudks(AddonData):
         During installation just install the package group
         Cloud..
         """
+        #TODO: Find a better way to add packages (maybe from package file)
         if self.state == "True":
             groups = list(GROUP_REQUIRED)
             for item in groups:
@@ -131,6 +134,7 @@ class Cloudks(AddonData):
         image and rabbitmq public key (both needed for offline packstack run)
         """
         # Create Answers file from given URL TODO:Copy the answer file directly
+        # Add if argument==answer-file
         if self.state == "True" and self.env == "anaconda":
             if self.lines is not None:
                 answer_file = os.path.normpath(ROOT_PATH + ANSWERS_FILE)
@@ -139,20 +143,15 @@ class Cloudks(AddonData):
 
             # Copying repodata, cirrios image & rabbitmq public key to Host system from media
             tmpdirectory = tempfile.mkdtemp()
-            # os.mkdir(ROOT_PATH + "/var/www/html/0.3.1")
+            os.mkdir(ROOT_PATH + "/root/cloud")
             util.mount(device="/dev/disk/by-label/CentOS\\x207\\x20x86_64", mountpoint=tmpdirectory, fstype="auto")
-            copy_tree(tmpdirectory + "/Packages/RDO", os.path.normcase(ROOT_PATH + "/var/www/html/"))
-            shutil.copy(os.path.normcase(ROOT_PATH + "/var/www/html/epel.repo"),
-                        os.path.normcase(ROOT_PATH + "/etc/yum.repos.d/epel.repo"))
-            # shutil.copy(tmpdirectory + "/Packages/RDO/cirros-0.3.1-x86_64-disk.img",
-            #             os.path.normcase(ROOT_PATH + "/var/www/html/0.3.1/cirros-0.3.1-x86_64-disk.img"))
-            # shutil.copy(tmpdirectory + "/Packages/RDO/rabbitmq-signing-key-public.asc",
-            #             os.path.normcase(ROOT_PATH + "/var/www/html/rabbitmq-signing-key-public.asc"))
-
+            # copy_tree(tmpdirectory + "/Packages/RDO", os.path.normcase(ROOT_PATH + "/var/www/html/"))
+            copy_tree(tmpdirectory + "/Packages/RDO", os.path.normcase(ROOT_PATH + "/root/cloud"))
             util.umount(tmpdirectory)
             shutil.rmtree(tmpdirectory)
             with open(ROOT_PATH + '/etc/hosts', 'a') as file:
                 file.write('127.0.0.1 www.rabbitmq.com\n')
+            file.close()
             # Copy Addon itself to /usr/share/anaconda/addons
             #TODO: Once Packaged remove this step
             if os.path.exists(ROOT_PATH + "/usr/share/anaconda/addons/org_centos_cloud"):
@@ -170,13 +169,15 @@ class Cloudks(AddonData):
             rc = iutil.execInSysroot("ln", ["-s", "usr/lib/systemd/system/initial-setup-text.service",
                                             "etc/systemd/system/multi-user.target.wants/initial-setup-text.service"])
             if rc:
-                print ("Initializing initial-setup-text service failed\n")
+                msg = "Initializing initial-setup-text service failed"
+                raise KickstartValueError(msg)
             # NetworkManager: Disable
             rc = iutil.execInSysroot("rm", ["-rf", "etc/systemd/system/multi-user.target.wants/NetworkManager.service",
                                             "etc/systemd/system/dbus-org.freedesktop.NetworkManager.service",
                                             "etc/systemd/system/dbus-org.freedesktop.nm-dispatcher.service"])
             if rc:
-                print ("Disabling Network Failed\n")
+                msg = "Disabling Network Failed"
+                raise KickstartValueError(msg)
 
         elif (self.env == "firstboot") and (self.arguments == "--allinone"):
 
@@ -185,12 +186,24 @@ class Cloudks(AddonData):
                 print ("Network start failed")
             ret = self.run_packstack()
             if ret:
-                input("OpenStack Successfully Setup! Press Any Key To Continue...")
+                if (self.cleanup()):
+                    raw_input("OpenStack Successfully Setup! Press Any Key To Continue...")
+                else:
+                    raw_input(
+                        "Warning! OpenStack Successfully Setup But System Cleanup failed. Press Any Key To Continue...")
         else:
             pass
 
     def run_packstack(self):
-        # Run & Display PackStack Here, do cleanup
+        """
+        Executes PackStack command and displays output to the User.
+
+        """
+        shutil.copy(os.path.normcase(ROOT_PATH + "/root/cloud/epel.repo"),
+                        os.path.normcase(ROOT_PATH + "/etc/yum.repos.d/epel.repo"))
+        shutil.copy(os.path.normcase(ROOT_PATH + "/root/cloud/rabbitmq-signing-key-public.asc"),
+                        os.path.normcase(ROOT_PATH + "/var/www/html/rabbitmq-signing-key-public.asc"))
+
         # Disable All other REPOS
         count = 0
         for line in fileinput.input(ROOT_PATH + "/etc/yum.repos.d/CentOS-Base.repo", inplace=True):
@@ -200,17 +213,41 @@ class Cloudks(AddonData):
                     print 'enabled=0'
             print line,
         fileinput.close()
+        c = 0
         process = subprocess.Popen(["packstack", "--allinone", "--use-epel=y",
-                                    "--provision-image-url=/var/www/html/cirros-0.3.1-x86_64-disk.img"],
+                                    "--provision-image-url=/root/cloud/cirros-0.3.1-x86_64-disk.img"],
                                    stdout=subprocess.PIPE)
         for line in iter(process.stdout.readline, ''):
             sys.stdout.write(line)
+            c += 1
+
+        # TODO: Handle STDOUT ERROR= return False
+
+        print ("Number of lines" +  str(c))
+        raw_input("PRESS ANY KEY TO CONITNUTE")
+        # Check if Any Service has failed to start
         process = subprocess.Popen(["openstack-status"], stdout=subprocess.PIPE)
+        status = ["failed"]
         for line in iter(process.stdout.readline, ''):
-            sys.stdout.write(line)
-        # TODO: PackStack Error Handling
-        # CleanUP
-        # Enable Repositories
+            if any(s in line for s in status):
+                sys.stdout.write("Failed to start the following Service:\n")
+                sys.stdout.write(line)
+                return False
+            else:
+                sys.stdout.write(line)
+        return True
+
+    def cleanup(self):
+        """
+        Called only if PackStack Setup is successful. Returns modified system environment to default.
+        It performs the following activities:
+        1. Enable Repositories, during installation default repos are disabled {for offline install}
+        (NOTE: EPEL repo is not changed back to default, it still points to /root/cloud/)
+        2. Remove rabbitmq entry from /etc/hosts file
+        3. Disable initial-setup-text service
+
+        """
+        count = 3
         for line in fileinput.input(ROOT_PATH + "/etc/yum.repos.d/CentOS-Base.repo", inplace=True):
             if line.startswith("enabled"):
                 if count > 0:
@@ -221,6 +258,15 @@ class Cloudks(AddonData):
             else:
                 print line,
         fileinput.close()
-        # TODO Cleanup /var/www/html
-        return True
 
+        for line in fileinput.input(ROOT_PATH + '/etc/hosts', inplace=True):
+                print(line.replace("127.0.0.1 www.rabbitmq.com", "").rstrip("\n"))
+        fileinput.close()
+
+        ret = iutil._run_systemctl("disable", "initial-setup-text")
+        if ret:
+            print ("Failed to Disable INITIAL-SETUP-UTILITY\n")
+            return False
+        os.remove(os.path.normcase(ROOT_PATH + "/var/www/html/rabbitmq-signing-key-public.asc"))
+        return True
+        #TODO: Maybe remove the /root/cloud folder
