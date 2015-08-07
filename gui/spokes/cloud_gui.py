@@ -19,9 +19,10 @@ class CloudSpoke(NormalSpoke):
 ​    """
 
     mainWidgetName = "CloudSpokeWindow"
-    uiFile = "cloud-enable.glade"
+#    uiFile = "cloud-enable.glade"
+    uiFile = "cloud.glade"
     category = SoftwareCategory
-    builderObjects = ["CloudSpokeWindow", "switch2"]
+    builderObjects = ["CloudSpokeWindow", "button1", "button1a", "button1b", "button2", "fileurl"]
     icon = "weather-overcast-symbolic"
     title = N_("_CLOUD SUPPORT")
 
@@ -55,17 +56,22 @@ class CloudSpoke(NormalSpoke):
         """
 
         NormalSpoke.initialize(self)
-        self.switch = self.builder.get_object("switch2")
-        if self.data.addons.org_centos_cloud.state == "True":
+        self.button1 = self.builder.get_object("button1")
+        self.button1a = self.builder.get_object("button1a")
+        self.button1b = self.builder.get_object("button1b")
+        self.button2 = self.builder.get_object("button2")
+        self.link = self.builder.get_object("fileurl")
+
+        # Check if Values Provided in KickStart
+        if self.data.addons.org_centos_cloud.state == "False":
+            print("INIT STATE=FALSE")
             # Addon is enabled
-            self.switch.set_active(True)
-            self.complete = True
-        elif self.data.addons.org_centos_cloud.state == "False":
-            #print("--disable")
-            self.switch.set_active(False)
-            self.complete = True
+            self.button2.set_active(True)
         else:
-            self.complete = False
+            print("INIT STATE=True or No Value GIVEN")
+            # DEFAULT = ENABLED
+            self.button1.set_active(True)
+
 
     def refresh(self):
         """
@@ -76,12 +82,22 @@ class CloudSpoke(NormalSpoke):
         :see: pyanaconda.ui.common.UIObject.refresh
 
         """
-        if self.data.addons.org_centos_cloud.state == "True":
+        if self.data.addons.org_centos_cloud.state == "False":
+            print("REFRESH STATE=FALSE or NO VALUE")
+            #Addon is disabled/ Not mentioned in KS
+            self.button2.set_active(True)
+        else:
+            # DEFAULT ENABLED
+            print("REFRESH STATE=TRUE")
             # Addon is enabled
-            self.switch.set_active(True)
-        elif self.data.addons.org_centos_cloud.state == "False":
-            #print("--disable")
-            self.switch.set_active(False)
+            self.button1.set_active(True)
+            if self.data.addons.org_centos_cloud.arguments == "--allinone" or self.data.addons.org_centos_cloud.arguments == "none":
+                print("REFRESH --allinone given")
+                self.button1a.set_active(True)
+            else: # answer-file
+                print("REFERSH ANSWER FILE GIVEN")
+                self.button1a.set_active(False)
+                self.link.set_text(str (self.data.addons.org_centos_cloud.arguments).replace("--answer-file=", ""))
 
     def apply(self):
         """
@@ -89,7 +105,19 @@ class CloudSpoke(NormalSpoke):
         update the contents of self.data with values set in the GUI elements.
 
         """
-        self.data.addons.org_centos_cloud.state = str(self.switch.get_active())
+        if self.button1.get_active():
+            # print ("APPLY BUTTON1 ACTIVE")
+            self.data.addons.org_centos_cloud.state = str(True)
+            if self.button1b.get_active():
+                # print ("APPLY --answerfile")
+                self.data.addons.org_centos_cloud.arguments = "--answer-file=" + str(self.link.get_text())
+            else:
+                print("APPLY --allinone")
+                self.data.addons.org_centos_cloud.arguments = "--allinone" # DEFAULT
+
+        else:
+            # print ("APPLY DISABLED/NO VALUE GIVEN")
+            self.data.addons.org_centos_cloud.state = str(False)
 
     def execute(self):
         """
@@ -99,7 +127,7 @@ class CloudSpoke(NormalSpoke):
 
         """
 
-        # nothing to do here
+        # TODO: MAYBE Add URL Verfication HERE
         pass
 
     @property
@@ -125,11 +153,11 @@ class CloudSpoke(NormalSpoke):
         :rtype: bool
 
         """
-
-        return bool(self.complete)
+        return True
 
     @property
     def mandatory(self):
+
         """
         The mandatory property that tells whether the spoke is mandatory to be
         completed to continue in the installation process.
@@ -137,7 +165,6 @@ class CloudSpoke(NormalSpoke):
         :rtype: bool
 
         """
-
         # this is an optional spoke that is not mandatory to be completed
         return False
 
@@ -152,23 +179,43 @@ class CloudSpoke(NormalSpoke):
         :rtype: str
 
         """
-        if self.switch.get_active():
+        if self.button1.get_active():
+            # print ("STATUS ACTIVE")
             state = "on"
         else:
+            # print ("STATUS OFF")
             state = "off"
 
         return _("Cloud Support %s") % state
 
     ### handlers ###
 
-    def on_switch2_notify(self, switch, *args):
-        pass
-    #
-    #     if self.switch.get_active():
-    #         self.state = "on" #TODO: If switch active then check if Cloud Repo is available?
-    #     else:
-    #         state = "off"
+    def on_button1_toggled(self, button):
 
+        if self.button1.get_active():
+            # print ("BUTTON1 ACTIVE")
+            self.button1a.set_sensitive(True)
+            self.button1b.set_sensitive(True)
+            self.link.set_sensitive(True)
+            self.button1a.set_active(True)
+        else:
+            # print ("BUTTON1 DISABLED")
+            self.button1a.set_sensitive(False)
+            self.button1b.set_sensitive(False)
+            self.link.set_sensitive(False)
+
+    def on_button1a_toggled(self, button):
+        if self.button1a.get_active():
+            # print ("BUTTON1A ENABLED")
+            self.link.set_sensitive(False)
+
+    def on_button1b_toggled(self, button):
+        # print ("BUTTON1B ENABLED")
+        self.link.set_sensitive(True)
+        # pass
+
+    def on_button2_toggled(self, button):
+        pass
 
 
 class PackStackSpoke(FirstbootOnlySpokeMixIn, NormalSpoke):
@@ -212,9 +259,11 @@ class PackStackSpoke(FirstbootOnlySpokeMixIn, NormalSpoke):
         :see: pyanaconda.ui.common.UIObject.initialize
 
         """
+
+        NormalSpoke.initialize(self)
         self.success = False
         self.complete = False
-        NormalSpoke.initialize(self)
+        self.data.addons.org_centos_cloud.env = "firstboot"
         self.button = self.builder.get_object("button1")
         self.progressbar = self.builder.get_object("progressbar1")
         if self.data.addons.org_centos_cloud.state == "False":
@@ -249,7 +298,7 @@ class PackStackSpoke(FirstbootOnlySpokeMixIn, NormalSpoke):
         if self.success:
             self.data.addons.org_centos_cloud.arguments = "--allinone"
         else:
-            self.data.addons.org_centos_cloud.arguments = "--disable"
+            self.data.addons.org_centos_cloud.arguments = "none"
 
     def execute(self):
         """
@@ -325,7 +374,7 @@ class PackStackSpoke(FirstbootOnlySpokeMixIn, NormalSpoke):
     ### handlers ###
     def on_button1_clicked(self, button, *args):
         if self.data.addons.org_centos_cloud.state == "True":
-            print ("I am on button clicked")
+            # print ("I am on button clicked")
             success = True
         else:
             pass

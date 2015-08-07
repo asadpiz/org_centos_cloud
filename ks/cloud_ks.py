@@ -80,7 +80,7 @@ class Cloudks(AddonData):
                 except:
                     msg = 'Exception Unable to fetch Answers file'
                     raise KickstartParseError, formatErrorMsg(lineno, msg=msg)
-                self.arguments = "--answers-file = " + options.file
+                self.arguments = "--answer-file=" + options.file
             elif options.mode:
                 # self.arguments = options.mode
                 self.arguments = "--allinone"

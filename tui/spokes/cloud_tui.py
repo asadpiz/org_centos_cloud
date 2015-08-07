@@ -4,13 +4,16 @@ _ = lambda x: x
 N_ = lambda x: x
 from pyanaconda.ui.tui.spokes import NormalTUISpoke
 from pyanaconda.ui.common import FirstbootOnlySpokeMixIn
-from pyanaconda.constants import ANACONDA_ENVIRON, FIRSTBOOT_ENVIRON
-from pykickstart.constants import FIRSTBOOT_RECONFIG
+from pyanaconda.ui.tui.simpleline import TextWidget, CheckboxWidget
+import urllib2
+
+
 
 # export only the HelloWorldSpoke and HelloWorldEditSpoke classes
 __all__ = ["CloudSpoke", "PackStackSpoke"]
 
 #TODO: Maybe use EditTUISpoke for a more Uniform Interface
+
 class CloudSpoke(NormalTUISpoke):
     """
     Class for the Hello world TUI spoke that is a subclass of NormalTUISpoke. It
@@ -66,11 +69,18 @@ class CloudSpoke(NormalTUISpoke):
         """
         # If KickStart provided apply values to spoke
         NormalTUISpoke.initialize(self)
-        if self.data.addons.org_centos_cloud.state == "True":
-            # Addon is enabled
-            self.state = True
-        else:
+        self.link = "<URL>"
+        if self.data.addons.org_centos_cloud.state == "False":
+            # Addon is Disabled
             self.state = False
+            self.mode = "disabled"
+        else: #DEFAULT
+            self.state = True
+            if self.data.addons.org_centos_cloud.arguments == "--allinone" or self.data.addons.org_centos_cloud.arguments == "none":
+                self.mode = "allinone"
+            else: # ANSWER FILE
+                self.link = str (self.data.addons.org_centos_cloud.arguments).replace("--answer-file=", "")
+                self.mode = "answerfile"
         self.data.addons.org_centos_cloud.state = str(self.state)
 
     def refresh(self, args=None):
@@ -88,7 +98,12 @@ class CloudSpoke(NormalTUISpoke):
         :rtype: bool
 
         """
+        NormalTUISpoke.refresh(self, args)
         # It should always prompt
+        box1 = CheckboxWidget(title="1. MODE: ALLINONE", text="DEFAULT", completed= (self.mode == "allinone"))
+        box2 = CheckboxWidget(title="2. MODE: ANSWER FILE", text=self.link, completed= (self.mode == "answerfile"))
+        box3 = CheckboxWidget(title="3. Disable OpenStack Support",completed=(self.mode == "disabled"))
+        self._window += [box1, "", box2, "", box3, ""]
         return (True)
 
     def apply(self):
@@ -99,6 +114,11 @@ class CloudSpoke(NormalTUISpoke):
         """
 
         self.data.addons.org_centos_cloud.state = str(self.state)
+        if self.mode=="allinone":
+             self.data.addons.org_centos_cloud.arguments = "--allinone"
+        elif self.mode=="answerfile":
+            self.data.addons.org_centos_cloud.arguments = "--answer-file=" + str (self.link)
+
 
     def execute(self):
         """
@@ -135,7 +155,7 @@ class CloudSpoke(NormalTUISpoke):
         :rtype: str
 
         """
-
+        print ("in status")
         if self.state:
             return _("Cloud Support: Enabled\n")
         else:
@@ -157,10 +177,26 @@ class CloudSpoke(NormalTUISpoke):
 
         """
 
-        if str(key) == "y" or str(key) == "Y" or str(key) == "yes":
+        if str(key) == "2":
+            self.link == raw_input("Please Enter URL To Answer File:")
+            #TODO: URL VALIDATION
             self.state = True
-        else:
+            self.mode = "answerfile"
+            try:
+                response = urllib2.urlopen(self.link)
+                for line in response:
+                    self.data.addons.org_centos_cloud.lines += line
+                self.state = True
+                self.mode = "answerfile"
+            except:
+                raw_input('Exception Unable to fetch Answers file! Press Any Key To Continue')
+
+        elif str (key) == "3":
             self.state = False
+            self.mode = "disabled"
+        else:
+            self.state = True
+            self.mode = "allinone"
 
         # no other actions scheduled, apply changes
         self.apply()
@@ -181,7 +217,7 @@ class CloudSpoke(NormalTUISpoke):
 
         """
 
-        return _("Do You Want to Enable Cloud Support? [y|n]\n: ")
+        return _("Choose An Option For OpenStack Support [1|2|3]:")
 
 class PackStackSpoke(FirstbootOnlySpokeMixIn, NormalTUISpoke):
 
@@ -243,6 +279,8 @@ class PackStackSpoke(FirstbootOnlySpokeMixIn, NormalTUISpoke):
                 self.complete = True
                 self.success = True
                 self.msg = "PackStack Mode: --alinone"
+            elif self.data.addons.org_centos_cloud.arguments == "answer-file":
+                pass
             elif self.data.addons.org_centos_cloud.arguments == "none":
                 #Make the spoke Incomplete, prompt for Input
                 self.msg = "OpenStack Setup: Enabled\n"
