@@ -260,30 +260,24 @@ class PackStackSpoke(FirstbootOnlySpokeMixIn, NormalTUISpoke):
         """
         NormalTUISpoke.initialize(self)
 
-        # If KickStart provided apply values to spoke
         self.enabled = True
-        self.success = False
-        self.complete = False
         self.msg = ""
         self.data.addons.org_centos_cloud.env = "firstboot"
         if self.data.addons.org_centos_cloud.state == "False":
             #Addon is disabled
             self.enabled = False
             self.complete = True
-            self.msg = "Cloud Support is Disabled"
+            self.msg = "Cloud Support: Disabled"
         elif self.data.addons.org_centos_cloud.state == "True":
             # Addon is enabled
             # Case mode is also specified in KS
-            if self.data.addons.org_centos_cloud.arguments == "--allinone":
-                # Just run packstack and return success & complete True or False
+            if str(self.data.addons.org_centos_cloud.arguments).startswith("--answer-file"):
                 self.complete = True
-                self.success = True
+                self.msg = "PackStack Mode: " + str(self.data.addons.org_centos_cloud.arguments)
+            else:
+                # DEFAULT MODE: --allinone is assumed
+                self.complete = True
                 self.msg = "PackStack Mode: --alinone"
-            elif self.data.addons.org_centos_cloud.arguments == "answer-file":
-                pass
-            elif self.data.addons.org_centos_cloud.arguments == "none":
-                #Make the spoke Incomplete, prompt for Input
-                self.msg = "OpenStack Setup: Enabled\n"
 
     def refresh(self, args=None):
         """
@@ -300,10 +294,16 @@ class PackStackSpoke(FirstbootOnlySpokeMixIn, NormalTUISpoke):
         :rtype: bool
 
         """
-        if not self.enabled:
-            return  False
-        else:
-            return True
+        NormalTUISpoke.refresh(self, args)
+        # It should always prompt
+        box1 = CheckboxWidget(title="1. Enable Cloud Support",
+                                  text="OpenStack MODE: " + str(self.data.addons.org_centos_cloud.arguments),
+                                  completed=(self.data.addons.org_centos_cloud.state == "True"))
+        box2 = CheckboxWidget(title=("2. Disable Cloud Support"), completed= (self.data.addons.org_centos_cloud.state == "False"))
+        self._window += [box1, "", box2, ""]
+        return (self.enabled) # Don't Prompt if ADDON was disabled during setup, because no packages have been installed
+
+
 
     def apply(self):
         """
@@ -311,10 +311,11 @@ class PackStackSpoke(FirstbootOnlySpokeMixIn, NormalTUISpoke):
         update the contents of self.data with values set in the GUI elements.
 
         """
-        if self.success:
-            self.data.addons.org_centos_cloud.arguments = "--allinone"
+        if self.data.addons.org_centos_cloud.state == "False":
+            self.data.addons.org_centos_cloud.arguments = ""
         else:
-            self.data.addons.org_centos_cloud.arguments = "none"
+            if not (str(self.data.addons.org_centos_cloud.arguments).startswith("--answer-file")):
+                self.data.addons.org_centos_cloud.arguments = "--allinone"
 
     def execute(self):
         """
@@ -336,9 +337,7 @@ class PackStackSpoke(FirstbootOnlySpokeMixIn, NormalTUISpoke):
         :rtype: bool
 
         """
-        #TODO: Add Cloud Package check here
-        # this spoke is always ready
-        return (self.enabled)
+        return True
 
     @property
     def completed(self):
@@ -351,7 +350,7 @@ class PackStackSpoke(FirstbootOnlySpokeMixIn, NormalTUISpoke):
 
         """
 
-        return bool(self.complete)
+        return True
 
 
 
@@ -395,7 +394,7 @@ class PackStackSpoke(FirstbootOnlySpokeMixIn, NormalTUISpoke):
 
         """
 
-        return _("Do You Want to Setup OpenStack? [y|n]\n: ")
+        return _("Do You Want to Setup OpenStack? [1|2]\n: ")
 
     def input(self, args, key):
         """
@@ -412,22 +411,17 @@ class PackStackSpoke(FirstbootOnlySpokeMixIn, NormalTUISpoke):
         :rtype: bool|unicode
 
         """
-
-        if str (key) == "y" or str (key) == "Y" or str (key) == "yes":
-            self.complete = True
-            self.success = True
-
-        elif str (key) == "N" or str (key) == "N" or str (key) == "no":
-            self.complete = True
-            self.msg = "OpenStack Setup: Disabled"
-            self.success = False
+        if str(key) == "2":
+            self.data.addons.org_centos_cloud.state = "False"
+            self.msg = "Cloud Support is Disabled"
+        elif str (key) == "1":
+            self.data.addons.org_centos_cloud.state = "True"
+            self.msg = "Cloud Support: Enabled"
         else:
-            self.complete = False
+            pass
 
-
-
+        # no other actions scheduled, apply changes
         self.apply()
-
         # close the current screen (remove it from the stack)
         self.close()
         return True

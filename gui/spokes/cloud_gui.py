@@ -64,13 +64,16 @@ class CloudSpoke(NormalSpoke):
 
         # Check if Values Provided in KickStart
         if self.data.addons.org_centos_cloud.state == "False":
+            # ADDON : DISABLED
             print("INIT STATE=FALSE")
-            # Addon is enabled
             self.button2.set_active(True)
         else:
             print("INIT STATE=True or No Value GIVEN")
             # DEFAULT = ENABLED
             self.button1.set_active(True)
+            # If no argument provided DEFAULT --allinone is assumed
+            if not (str (self.data.addons.org_centos_cloud.arguments).startswith("--answer-file")):
+                self.data.addons.org_centos_cloud.arguments = "--allinone"
 
 
     def refresh(self):
@@ -181,10 +184,10 @@ class CloudSpoke(NormalSpoke):
         """
         if self.button1.get_active():
             # print ("STATUS ACTIVE")
-            state = "on"
+            state = "Enabled"
         else:
             # print ("STATUS OFF")
-            state = "off"
+            state = "Disabled"
 
         return _("Cloud Support %s") % state
 

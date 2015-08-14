@@ -18,9 +18,9 @@ from blivet import util
 
 __all__ = ["Cloudks"]
 
-ANSWERS_FILE = "/root/packstack-answers.txt"
+# ANSWERS_FILE = "/root/packstack-answers.txt"
 GROUP_REQUIRED = ("@Cloud",)
-
+ADDON_DIRECTORY = "/root/cloud/" # Addon Files for first boot
 
 # Mandatory methods (handle_header, handle_line, setup, execute and __str__)
 
@@ -136,17 +136,17 @@ class Cloudks(AddonData):
         # Create Answers file from given URL TODO:Copy the answer file directly
         # Add if argument==answer-file
         if self.state == "True" and self.env == "anaconda":
+            os.mkdir(ROOT_PATH + ADDON_DIRECTORY)
             if self.lines is not None:
-                answer_file = os.path.normpath(ROOT_PATH + ANSWERS_FILE)
+                answer_file = os.path.normpath(ROOT_PATH + ADDON_DIRECTORY + "answer-file.txt")
                 with open(answer_file, "w") as fobj:
                     fobj.write("%s\n" % self.lines)
 
             # Copying repodata, cirrios image & rabbitmq public key to Host system from media
             tmpdirectory = tempfile.mkdtemp()
-            os.mkdir(ROOT_PATH + "/root/cloud")
             util.mount(device="/dev/disk/by-label/CentOS\\x207\\x20x86_64", mountpoint=tmpdirectory, fstype="auto")
             # copy_tree(tmpdirectory + "/Packages/RDO", os.path.normcase(ROOT_PATH + "/var/www/html/"))
-            copy_tree(tmpdirectory + "/Packages/RDO", os.path.normcase(ROOT_PATH + "/root/cloud"))
+            copy_tree(tmpdirectory + "/Packages/RDO", os.path.normcase(ROOT_PATH + ADDON_DIRECTORY))
             util.umount(tmpdirectory)
             shutil.rmtree(tmpdirectory)
             with open(ROOT_PATH + '/etc/hosts', 'a') as file:
@@ -179,7 +179,7 @@ class Cloudks(AddonData):
                 msg = "Disabling Network Failed"
                 raise KickstartValueError(msg)
 
-        elif (self.env == "firstboot") and (self.arguments == "--allinone"):
+        elif (self.env == "firstboot") and (self.state == "True"):
 
             rc = iutil._run_systemctl("enable", "network")
             if rc:
@@ -214,8 +214,8 @@ class Cloudks(AddonData):
             print line,
         fileinput.close()
         c = 0
-        process = subprocess.Popen(["packstack", "--allinone", "--use-epel=y",
-                                    "--provision-image-url=/root/cloud/cirros-0.3.1-x86_64-disk.img"],
+        process = subprocess.Popen(["packstack", str(self.arguments), "--use-epel=y",
+                                    "--provision-image-url=" + ADDON_DIRECTORY +"cirros-0.3.1-x86_64-disk.img"],
                                    stdout=subprocess.PIPE)
         for line in iter(process.stdout.readline, ''):
             sys.stdout.write(line)
@@ -225,6 +225,7 @@ class Cloudks(AddonData):
 
         print ("Number of lines" +  str(c))
         raw_input("PRESS ANY KEY TO CONITNUTE")
+
         # Check if Any Service has failed to start
         process = subprocess.Popen(["openstack-status"], stdout=subprocess.PIPE)
         status = ["failed"]
