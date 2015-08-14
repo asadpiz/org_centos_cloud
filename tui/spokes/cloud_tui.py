@@ -155,7 +155,6 @@ class CloudSpoke(NormalTUISpoke):
         :rtype: str
 
         """
-        print ("in status")
         if self.state:
             return _("Cloud Support: Enabled\n")
         else:

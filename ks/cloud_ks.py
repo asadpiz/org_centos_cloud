@@ -133,19 +133,17 @@ class Cloudks(AddonData):
         from location given in kickstart. Second copy cirrios
         image and rabbitmq public key (both needed for offline packstack run)
         """
-        # Create Answers file from given URL TODO:Copy the answer file directly
-        # Add if argument==answer-file
+        # Create Answers file from given URL TODO:Copy the answer file to host
         if self.state == "True" and self.env == "anaconda":
             os.mkdir(ROOT_PATH + ADDON_DIRECTORY)
-            if self.lines is not None:
-                answer_file = os.path.normpath(ROOT_PATH + ADDON_DIRECTORY + "answer-file.txt")
-                with open(answer_file, "w") as fobj:
-                    fobj.write("%s\n" % self.lines)
+            # if (self.lines is not None) and not (self.lines == "") :
+            #     answer_file = os.path.normpath(ROOT_PATH + ADDON_DIRECTORY + "answer-file.txt")
+            #     with open(answer_file, "w") as fobj:
+            #         fobj.write("%s\n" % self.lines)
 
             # Copying repodata, cirrios image & rabbitmq public key to Host system from media
             tmpdirectory = tempfile.mkdtemp()
             util.mount(device="/dev/disk/by-label/CentOS\\x207\\x20x86_64", mountpoint=tmpdirectory, fstype="auto")
-            # copy_tree(tmpdirectory + "/Packages/RDO", os.path.normcase(ROOT_PATH + "/var/www/html/"))
             copy_tree(tmpdirectory + "/Packages/RDO", os.path.normcase(ROOT_PATH + ADDON_DIRECTORY))
             util.umount(tmpdirectory)
             shutil.rmtree(tmpdirectory)
@@ -213,18 +211,14 @@ class Cloudks(AddonData):
                     print 'enabled=0'
             print line,
         fileinput.close()
-        c = 0
+
         process = subprocess.Popen(["packstack", str(self.arguments), "--use-epel=y",
                                     "--provision-image-url=" + ADDON_DIRECTORY +"cirros-0.3.1-x86_64-disk.img"],
                                    stdout=subprocess.PIPE)
         for line in iter(process.stdout.readline, ''):
             sys.stdout.write(line)
-            c += 1
 
         # TODO: Handle STDOUT ERROR= return False
-
-        print ("Number of lines" +  str(c))
-        raw_input("PRESS ANY KEY TO CONITNUTE")
 
         # Check if Any Service has failed to start
         process = subprocess.Popen(["openstack-status"], stdout=subprocess.PIPE)

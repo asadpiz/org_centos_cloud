@@ -65,10 +65,8 @@ class CloudSpoke(NormalSpoke):
         # Check if Values Provided in KickStart
         if self.data.addons.org_centos_cloud.state == "False":
             # ADDON : DISABLED
-            print("INIT STATE=FALSE")
             self.button2.set_active(True)
         else:
-            print("INIT STATE=True or No Value GIVEN")
             # DEFAULT = ENABLED
             self.button1.set_active(True)
             # If no argument provided DEFAULT --allinone is assumed
@@ -86,19 +84,15 @@ class CloudSpoke(NormalSpoke):
 
         """
         if self.data.addons.org_centos_cloud.state == "False":
-            print("REFRESH STATE=FALSE or NO VALUE")
             #Addon is disabled/ Not mentioned in KS
             self.button2.set_active(True)
         else:
             # DEFAULT ENABLED
-            print("REFRESH STATE=TRUE")
             # Addon is enabled
             self.button1.set_active(True)
             if self.data.addons.org_centos_cloud.arguments == "--allinone" or self.data.addons.org_centos_cloud.arguments == "none":
-                print("REFRESH --allinone given")
                 self.button1a.set_active(True)
             else: # answer-file
-                print("REFERSH ANSWER FILE GIVEN")
                 self.button1a.set_active(False)
                 self.link.set_text(str (self.data.addons.org_centos_cloud.arguments).replace("--answer-file=", ""))
 
@@ -109,17 +103,13 @@ class CloudSpoke(NormalSpoke):
 
         """
         if self.button1.get_active():
-            # print ("APPLY BUTTON1 ACTIVE")
             self.data.addons.org_centos_cloud.state = str(True)
             if self.button1b.get_active():
-                # print ("APPLY --answerfile")
                 self.data.addons.org_centos_cloud.arguments = "--answer-file=" + str(self.link.get_text())
             else:
-                print("APPLY --allinone")
                 self.data.addons.org_centos_cloud.arguments = "--allinone" # DEFAULT
 
         else:
-            # print ("APPLY DISABLED/NO VALUE GIVEN")
             self.data.addons.org_centos_cloud.state = str(False)
 
     def execute(self):
@@ -183,10 +173,8 @@ class CloudSpoke(NormalSpoke):
 
         """
         if self.button1.get_active():
-            # print ("STATUS ACTIVE")
             state = "Enabled"
         else:
-            # print ("STATUS OFF")
             state = "Disabled"
 
         return _("Cloud Support %s") % state
@@ -196,24 +184,20 @@ class CloudSpoke(NormalSpoke):
     def on_button1_toggled(self, button):
 
         if self.button1.get_active():
-            # print ("BUTTON1 ACTIVE")
             self.button1a.set_sensitive(True)
             self.button1b.set_sensitive(True)
             self.link.set_sensitive(True)
             self.button1a.set_active(True)
         else:
-            # print ("BUTTON1 DISABLED")
             self.button1a.set_sensitive(False)
             self.button1b.set_sensitive(False)
             self.link.set_sensitive(False)
 
     def on_button1a_toggled(self, button):
         if self.button1a.get_active():
-            # print ("BUTTON1A ENABLED")
             self.link.set_sensitive(False)
 
     def on_button1b_toggled(self, button):
-        # print ("BUTTON1B ENABLED")
         self.link.set_sensitive(True)
         # pass
 
