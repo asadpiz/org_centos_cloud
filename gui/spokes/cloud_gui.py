@@ -61,13 +61,13 @@ class CloudSpoke(NormalSpoke):
         self.button1b = self.builder.get_object("button1b")
         self.button2 = self.builder.get_object("button2")
         self.link = self.builder.get_object("fileurl")
-
         # Check if Values Provided in KickStart
         if self.data.addons.org_centos_cloud.state == "False":
             # ADDON : DISABLED
             self.button2.set_active(True)
         else:
-            # DEFAULT = ENABLED
+            # No Value Given choose : DEFAULT = ENABLED
+            self.data.addons.org_centos_cloud.state = "True"
             self.button1.set_active(True)
             # If no argument provided DEFAULT --allinone is assumed
             if not (str (self.data.addons.org_centos_cloud.arguments).startswith("--answer-file")):
