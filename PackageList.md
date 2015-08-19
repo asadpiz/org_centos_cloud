@@ -1,3 +1,21 @@
+MySQL-python
+
+OpenIPMI-modalias
+
+PyPAM
+
+PyYAML
+
+SDL
+
+anaconda-core
+
+anaconda-tui
+
+at-spi2-atk
+
+at-spi2-core
+
 apr
 
 apr-util
@@ -38,6 +56,16 @@ ca-certificates
 
 cairo
 
+cairo-gobject
+
+chrony
+
+colord-libs
+
+createrepo
+
+cryptsetup-python
+
 celt051
 
 centos-logos
@@ -55,6 +83,16 @@ cups-libs
 cyrus-sasl
 
 cyrus-sasl-md5
+
+deltarpm
+
+device-mapper-multipath
+
+device-mapper-multipath-libs
+
+dmraid
+
+dmraid-events
 
 device-mapper
 
@@ -212,6 +250,14 @@ fuse
 
 fuse-libs
 
+fcoe-utils
+
+gtk-vnc
+
+gtk3
+
+gvnc
+
 galera
 
 gd
@@ -282,11 +328,17 @@ iscsi-initiator-utils
 
 iscsi-initiator-utils-iscsiuio
 
+initial-setup
+
+isomd5sum
+
 jasper-libs
 
 jbigkit-libs
 
 jemalloc
+
+keybinder3
 
 keepalived
 
@@ -305,6 +357,50 @@ lapack
 lcms2
 
 ldns
+
+libICE
+
+libSM
+
+libX11
+
+libX11-common
+
+libXau
+
+libXaw
+
+libXcomposite
+
+libXcursor
+
+libXdamage
+
+libXext
+
+libXfixes
+
+libXfont
+
+libXft
+
+libXi
+
+libXinerama
+
+libXmu
+
+libXpm
+
+libXrandr
+
+libXrender
+
+libXt
+
+libXtst
+
+libXxf86vm
 
 libasyncns
 
@@ -333,8 +429,6 @@ libgudev1
 libguestfs
 
 libibverbs
-
-libICE
 
 libicu
 
@@ -385,8 +479,6 @@ libseccomp
 libselinux-ruby
 
 libsemanage-python
-
-libSM
 
 libsndfile
 
@@ -448,55 +540,15 @@ libvorbis
 
 libwebp
 
-libX11
-
-libX11-common
-
-libXau
-
-libXaw
-
 libxcb
-
-libXcomposite
-
-libXcursor
-
-libXdamage
-
-libXext
-
-libXfixes
-
-libXfont
-
-libXft
-
-libXi
-
-libXinerama
 
 libxml2
 
 libxml2-python
 
-libXmu
-
-libXpm
-
-libXrandr
-
-libXrender
-
 libxslt
 
 libxslt-python
-
-libXt
-
-libXtst
-
-libXxf86vm
 
 libyaml
 
@@ -516,6 +568,50 @@ lvm2-libs
 
 lzop
 
+langtable
+
+langtable-data
+
+langtable-python
+
+libXevie
+
+libarchive
+
+libconfig
+
+libgusb
+
+libhbaapi
+
+libhbalinux
+
+libreport
+
+libreport-anaconda
+
+libreport-cli
+
+libreport-plugin-bugzilla
+
+libreport-plugin-reportuploader
+
+libreport-plugin-rhtsupport
+
+libreport-python
+
+libreport-rhel-anaconda-bugzilla
+
+libreport-web
+
+libtar
+
+libuser
+
+libuser-python
+
+lldpad
+
 mailcap
 
 mailx
@@ -532,21 +628,19 @@ memcached
 
 mesa-libEGL
 
-mesa-libgbm
-
 mesa-libGL
 
-mesa-libglapi
-
 mesa-libGLU
+
+mesa-libgbm
+
+mesa-libglapi
 
 mod_wsgi
 
 mongodb-server
 
 mtools
-
-MySQL-python
 
 nagios
 
@@ -558,12 +652,6 @@ nagios-plugins-nrpe
 
 nagios-plugins-ping
 
-netcf-libs
-
-netpbm
-
-netpbm-progs
-
 net-snmp
 
 net-snmp-agent-libs
@@ -571,6 +659,16 @@ net-snmp-agent-libs
 net-snmp-libs
 
 net-tools
+
+netcf-libs
+
+netpbm
+
+netpbm-progs
+
+NetworkManager-glib
+
+NetworkManager-team
 
 nfs-utils
 
@@ -596,7 +694,11 @@ numpy
 
 numpy-f2py
 
-OpenIPMI-modalias
+ntpdate
+
+oddjob
+
+oddjob-mkhomedir
 
 openssh
 
@@ -678,6 +780,8 @@ openstack-utils
 
 openvswitch
 
+PackageKit-glib
+
 pango
 
 pciutils
@@ -694,13 +798,11 @@ perl-Compress-Raw-Bzip2
 
 perl-Compress-Raw-Zlib
 
-perl-constant
-
-perl-Data-Dumper
-
 perl-DBD-MySQL
 
 perl-DBI
+
+perl-Data-Dumper
 
 perl-Digest
 
@@ -721,8 +823,6 @@ perl-File-Temp
 perl-Filter
 
 perl-Getopt-Long
-
-perl-hivex
 
 perl-HTML-Parser
 
@@ -748,13 +848,7 @@ perl-IO-Socket-IP
 
 perl-IO-Socket-SSL
 
-perl-libs
-
-perl-libwww-perl
-
 perl-LWP-MediaTypes
-
-perl-macros
 
 perl-Net-Daemon
 
@@ -764,15 +858,11 @@ perl-Net-LibIDN
 
 perl-Net-SSLeay
 
-perl-parent
-
 perl-PathTools
 
 perl-PlRPC
 
 perl-Pod-Escapes
-
-perl-podlators
 
 perl-Pod-Perldoc
 
@@ -788,19 +878,33 @@ perl-Storable
 
 perl-Text-ParseWords
 
-perl-threads
-
-perl-threads-shared
-
-perl-TimeDate
-
 perl-Time-HiRes
 
 perl-Time-Local
 
+perl-TimeDate
+
 perl-URI
 
 perl-WWW-RobotRules
+
+perl-constant
+
+perl-hivex
+
+perl-libs
+
+perl-libwww-perl
+
+perl-macros
+
+perl-parent
+
+perl-podlators
+
+perl-threads
+
+perl-threads-shared
 
 php
 
@@ -824,8 +928,6 @@ puppet
 
 pyOpenSSL
 
-PyPAM
-
 pyparsing
 
 pysendfile
@@ -833,6 +935,54 @@ pysendfile
 pysnmp
 
 python
+
+python-IPy
+
+python-XStatic
+
+python-XStatic-Angular
+
+python-XStatic-Angular-Bootstrap
+
+python-XStatic-Angular-Mock
+
+python-XStatic-Angular-lrdragndrop
+
+python-XStatic-Bootstrap-Datepicker
+
+python-XStatic-Bootstrap-SCSS
+
+python-XStatic-D3
+
+python-XStatic-Font-Awesome
+
+python-XStatic-Hogan
+
+python-XStatic-JQuery-Migrate
+
+python-XStatic-JQuery-TableSorter
+
+python-XStatic-JQuery-quicksearch
+
+python-XStatic-JSEncrypt
+
+python-XStatic-Jasmine
+
+python-XStatic-Magic-Search
+
+python-XStatic-QUnit
+
+python-XStatic-Rickshaw
+
+python-XStatic-Spin
+
+python-XStatic-jQuery
+
+python-XStatic-jquery-ui
+
+python-XStatic-smart-table
+
+python-XStatic-termjs
 
 python-alembic
 
@@ -922,9 +1072,9 @@ python-futures
 
 python-glance
 
-python-glanceclient
-
 python-glance-store
+
+python-glanceclient
 
 python-greenlet
 
@@ -933,8 +1083,6 @@ python-heatclient
 python-httplib2
 
 python-ipaddr
-
-python-IPy
 
 python-iso8601
 
@@ -1160,55 +1308,27 @@ python-wrapt
 
 python-wsme
 
-python-XStatic
-
-python-XStatic-Angular
-
-python-XStatic-Angular-Bootstrap
-
-python-XStatic-Angular-lrdragndrop
-
-python-XStatic-Angular-Mock
-
-python-XStatic-Bootstrap-Datepicker
-
-python-XStatic-Bootstrap-SCSS
-
-python-XStatic-D3
-
-python-XStatic-Font-Awesome
-
-python-XStatic-Hogan
-
-python-XStatic-Jasmine
-
-python-XStatic-jQuery
-
-python-XStatic-JQuery-Migrate
-
-python-XStatic-JQuery-quicksearch
-
-python-XStatic-JQuery-TableSorter
-
-python-XStatic-jquery-ui
-
-python-XStatic-JSEncrypt
-
-python-XStatic-Magic-Search
-
-python-XStatic-QUnit
-
-python-XStatic-Rickshaw
-
-python-XStatic-smart-table
-
-python-XStatic-Spin
-
-python-XStatic-termjs
-
 pytz
 
-PyYAML
+pykickstart
+
+pyparted
+
+python-blivet
+
+python-coverage
+
+python-deltarpm
+
+python-di
+
+python-meh
+
+python-nss
+
+python-pwquality
+
+python-pyblock
 
 qemu-img
 
@@ -1236,6 +1356,12 @@ ruby
 
 ruby-augeas
 
+ruby-irb
+
+ruby-libs
+
+ruby-shadow
+
 rubygem-bigdecimal
 
 rubygem-io-console
@@ -1250,17 +1376,15 @@ rubygem-rgen
 
 rubygems
 
-ruby-irb
+realmd
 
-ruby-libs
+satyr
 
-ruby-shadow
+sgpio
 
 scipy
 
 scrub
-
-SDL
 
 seabios-bin
 
@@ -1316,6 +1440,8 @@ urw-fonts
 
 usbredir
 
+usermode
+
 util-linux
 
 v8
@@ -1331,6 +1457,10 @@ wxGTK
 wxGTK-gl
 
 xinetd
+
+xmlrpc-c
+
+xmlrpc-c-client
 
 xorg-x11-font-utils
 
