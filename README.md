@@ -42,7 +42,7 @@ How to generate Remix ISO: [Instructions](https://github.com/asadpiz/centos-resp
 
 > [TBA]: Link to Remix ISO*
 
-* [[OPTIONAL]] To use the latest version of addon: At the first install screen of CentOS press "TAB" and append the following command: `inst.updates=[Under Progress]`
+* [[OPTIONAL]] To use the latest version of addon: At the first install screen of CentOS press "TAB" and append the following command: `inst.updates=https://github.com/asadpiz/org_centos_cloud/releases/download/v0.1-alpha/updates.img`
 
 
 ## Contact Info:
