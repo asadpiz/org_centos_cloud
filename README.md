@@ -18,36 +18,33 @@ This addon integrates RDO (Red Hat community's openstack package repository) and
 
 ## System Requirements:
 
-* CentOS 7 (anaconda 19.31.123)
+*  CentOS 7 (anaconda 19.31.123) Remix ISO (~1.2GB)
 
-* Packages [Cloud Repository Link TBA]- Meanwhile [Package List](../master/PackageList.md)
+* *Note: During Setup You MUST setup the Network Interface otherwise installation will fail*
+
+* Cloud/RDO Packages from CentOS: [Package List](../master/PackageList.md)
 
 
 ## Current Status:
 
 Anaconda has three modes of operation i.e., Kickstart, Graphical and Text User Interfaces. Hence our add-on development is divided into adding openstack installation support for each of these three modes. 
-Uptill now Kickstart support has been implemented i.e., user is able to install openstack through a kickstart file during setup.
+Uptill now GUI & TUI support has been implemented.
 
-Currently GUI support is being developed. After that TUI support and openstack customization options will be added.
-Final deliverable will be an "CentOS Openstack remix" ISO (~1.2GB) built using CentOS minimal ISO.
-
-The remixed CentOS 7 ISO can be obtained from: [TBA]
-
+Kickstart is also almost supported but there is a piece of code in the initial-setup-utility which prevents packstack from being executed at firstboot.
 
 ## Testing Instructions:
-There are three ways to test the addon:
 
-**Method 1.** Fetch CentOS ISO from [Under Progress], which contains the addon and simply run the installer.
+** Fetch CentOS Remix ISO, The remix ISO can be generated through a [script](https://github.com/asadpiz/centos-respin/archive/master.zip) [Instructions](https://github.com/asadpiz/centos-respin/blob/master/README.md) on how to generate Remix ISO
 
-**Method 2.** Use "updates.img" file and At the first install screen of CentOS press "TAB" and append the following command: `inst.updates=[Under Progress]`
+Then Simply run the ISO.
 
-*Note: The ISO you choose must have all openstack packages, Fetch the CentOS ISO here.*
+** During Setup, there will be a spoke by the name of "Cloud Support". CUrrently both --allinone & --answer-file modes of packstack are supported. Simply Select the mode and continue.
 
-**Method 3**. Generate updates.img from source: Clone the source from the repository and place it in a new directory tmpo/usr/share/anaconda/addons/. Then from the tmpo directory run the following command:
-`find . | cpio -c -o | gzip -9 > updates.img`
+*[TBA]: Link to Remix ISO*
 
-Then use Method 2.
- 
+** [[OPTIONAL]] To use the latest version of addon: At the first install screen of CentOS press "TAB" and append the following command: `inst.updates=[Under Progress]`
+
+
 ## Contact Info:
 IRC: asad_ (#centos-devel)
 
