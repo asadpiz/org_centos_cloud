@@ -34,17 +34,17 @@ Kickstart is also almost supported but there is a piece of code in the initial-s
 
 ## Testing Instructions:
 
-** Fetch CentOS Remix ISO, The remix ISO can be generated through a [script](https://github.com/asadpiz/centos-respin/archive/master.zip).
+* Fetch CentOS Remix ISO, The remix ISO can be generated through a [script](https://github.com/asadpiz/centos-respin/archive/master.zip).
 
 How to generate Remix ISO: [Instructions](https://github.com/asadpiz/centos-respin/blob/master/README.md) 
 
 Then Simply run the ISO.
 
-** During Setup, there will be a spoke by the name of "Cloud Support". CUrrently both **--allinone** & **--answer-file** modes of packstack are supported. Simply Select the mode and continue.
+* During Setup, there will be a spoke by the name of "Cloud Support". CUrrently both **--allinone** & **--answer-file** modes of packstack are supported. Simply Select the mode and continue.
 
-*[TBA]: Link to Remix ISO*
+> [TBA]: Link to Remix ISO*
 
-> [[OPTIONAL]] To use the latest version of addon: At the first install screen of CentOS press "TAB" and append the following command: `inst.updates=[Under Progress]`
+* [[OPTIONAL]] To use the latest version of addon: At the first install screen of CentOS press "TAB" and append the following command: `inst.updates=[Under Progress]`
 
 
 ## Contact Info:
