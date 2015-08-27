@@ -4,7 +4,7 @@ This is an addon that enables installation/setup of OpenStack during CentOS inst
 
 ## Introduction:
 
-To ease openstack deployment concerns, this addon aims to provide a robust, pre-configured (yet customizable) and easily installed openstack setup. The result is a CentOS 7 (Remixed) ISO with an option to setup openstack during installation. 
+To ease openstack deployment concerns, this addon aims to provide a robust, pre-configured (yet customizable) and easily installed openstack setup. The result is a [CentOS 7 (Remixed) ISO](http://buildlogs.centos.org/gsoc2015/cloud-in-a-box/CentOS-7-x86_64-RDO-1503-2015082701.iso) with an option to setup openstack during installation. 
 
 ## Implementation:
 
@@ -17,7 +17,8 @@ This addon integrates RDO (Red Hat community's openstack package repository) and
 * 
 ## System Requirements:
 
-*  CentOS 7 (anaconda 19.31.123) Remix ISO (~1.2GB) [LINK TBA]
+*  CentOS 7 (anaconda 19.31.123) Remix ISO (~1GB) [LINK](http://buildlogs.centos.org/gsoc2015/cloud-in-a-box/CentOS-7-x86_64-RDO-1503-2015082701.iso)
+
 *  System with atleast 1 NIC configured and 4GB RAM. 
 
 * **Note: During Setup You MUST setup the Network Interface otherwise installation will fail**
@@ -31,25 +32,32 @@ Kickstart is also almost supported but there is a piece of code in the initial-s
 
 ## Usage Instructions:
 
-* Fetch CentOS Remix ISO [TBA]: Link to Remix ISO*, Then Simply run the setup. 
+* Fetch [CentOS Remix ISO](http://buildlogs.centos.org/gsoc2015/cloud-in-a-box/CentOS-7-x86_64-RDO-1503-2015082701.iso), Then Simply run the setup. 
 
 > The remix ISO can also be generated locally through a [script](https://github.com/asadpiz/centos-respin/archive/master.zip). 
 
 * After Selecting Language the Main Hub should look like this:
+
 ![Alt text](/../screenshots/1.png?raw=true "Main Hub")
 
-* *Network Configuration*: Go to Network & Hostname and Enable Network by Clicking the toggle button:
+* **Network Configuration**: Go to Network & HostName Spoke and Enable Network by Clicking the toggle button:
+
 ![Alt text](/../screenshots/2.png?raw=true "Network Spoke")
+
+* After Enabling Network the Spoke should display the Network Summary.
 ![Alt text](/../screenshots/2-1.png?raw=true "Network Spoke")
 
-* *OpenStack Mode*: Select the mode of PackStack Installation, currently both *--allinone* & *--answer-file* are supported.
+* *OpenStack Mode*: Go to Cloud Support Spoke:
 ![Alt text](/../screenshots/3.png?raw=true "Cloud Spoke")
-![Alt text](/../screenshots/4.png?raw=true "Cloud Spoke")
+
+* Select the mode of PackStack Installation, currently both *--allinone* & *--answer-file* are supported.
+![Alt text](/../screenshots/4.png?raw=true "Cloud Spoke-2")
 
 * *Summary*: The Summary Hub should Look like the following i.e., both Network Interface and Cloud Support must be enabled. Then Click "Begin Installation"
 ![Alt text](/../screenshots/5.png?raw=true "Summary")
 
 * At Firstboot, the following Installation screen will be displayed. Just Go to *License Information* and accept the license:
+
 ![Alt text](/../screenshots/6.png?raw=true "Firstboot")
 
 * Just Press *c* and OpenStack Setup via Packstack will begin.
