@@ -47,13 +47,13 @@ Kickstart is also almost supported but there is a piece of code in the initial-s
 * After Enabling Network the Spoke should display the Network Summary.
 ![Alt text](/../screenshots/2-1.png?raw=true "Network Spoke")
 
-* *OpenStack Mode*: Go to Cloud Support Spoke:
+* **Cloud Support**: Go to Cloud Support Spoke:
 ![Alt text](/../screenshots/3.png?raw=true "Cloud Spoke")
 
-* Select the mode of PackStack Installation, currently both *--allinone* & *--answer-file* are supported.
+* **PackStack Mode**: Select the mode of PackStack Installation, currently both *--allinone* & *--answer-file* are supported.
 ![Alt text](/../screenshots/4.png?raw=true "Cloud Spoke-2")
 
-* *Summary*: The Summary Hub should Look like the following i.e., both Network Interface and Cloud Support must be enabled. Then Click "Begin Installation"
+* **Summary**: The Summary Hub should Look like the following i.e., both Network Interface and Cloud Support must be enabled. Then Click "Begin Installation"
 ![Alt text](/../screenshots/5.png?raw=true "Summary")
 
 * At Firstboot, the following Installation screen will be displayed. Just Go to *License Information* and accept the license:
