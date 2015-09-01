@@ -68,13 +68,11 @@ Kickstart is also almost supported but there is a piece of code in the initial-s
 
 
 ## Contact Info:
-```html
+<dl>
 <a href="https://de.linkedin.com/pub/asadullah-hussain/1a/632/92">
-      
-          <img src="https://static.licdn.com/scds/common/u/img/webpromo/btn_viewmy_160x33.png" width="160" height="33" border="0" alt="View Asadullah Hussain's profile on LinkedIn">
-        
+      <img src="https://static.licdn.com/scds/common/u/img/webpromo/btn_viewmy_160x33.png" width="160" height="33" border="0" alt="View Asadullah Hussain's profile on LinkedIn">
     </a>
-```
+</dl>
 IRC: asad_ (#centos-devel)
 
  
