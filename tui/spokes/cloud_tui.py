@@ -276,7 +276,7 @@ class PackStackSpoke(FirstbootOnlySpokeMixIn, NormalTUISpoke):
             else:
                 # DEFAULT MODE: --allinone is assumed
                 self.complete = True
-                self.msg = "PackStack Mode: --alinone"
+                self.msg = "PackStack Mode: --allinone"
 
     def refresh(self, args=None):
         """
